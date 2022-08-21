@@ -31,7 +31,6 @@ path_model = os.environ.get('PROJECT_PATH', '..')
 files = os.listdir(f'{path_model}/data/models')
 files = [file.split('.')[0].split('_')[-1] for file in files]
 model_number = max(files)
-print(model_number)
 
 
 with open(f'{path_model}/data/models/cars_pipe_{model_number}.pkl', 'rb') as file:
