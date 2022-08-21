@@ -6,25 +6,32 @@ from datetime import datetime
 
 import os
 
+path = os.environ.get('PROJECT_PATH', '..')
 
-with open('../data/models/cars_pipe_202208211029.pkl', 'rb') as file:
+files = os.listdir(f'{path}/data/models')
+files = [file.split('.')[0].split('_')[-1] for file in files]
+model_number = max(files)
+print(model_number)
+
+
+with open(f'{path}/data/models/cars_pipe_{model_number}.pkl', 'rb') as file:
     model = dill.load(file)
 
 
 def predict():
     results  = pd.DataFrame(columns=['id', 'prediction', 'price'])
-    dirs = os.listdir('../data/test')
+    dirs = os.listdir(f'{path}/data/test')
     for f in dirs:
         f = str(f)
-        path = '../data/test/'+f
-        with open(path) as file:
+        paths = f'{path}/data/test/'+f
+        with open(paths) as file:
             form = json.load(file)
             df = pd.DataFrame([form])
             y = model.predict(df)
             to_append = [f.split('.')[0], y[0], df.loc[0, 'price']]
             results.loc[len(results.index)]=to_append
 
-    prediction_filename = f'../data/predictions/predictions_{datetime.now().strftime("%Y%m%d%H%M")}.csv'
+    prediction_filename = f'{path}/data/predictions/predictions_{datetime.now().strftime("%Y%m%d%H%M")}.csv'
     results.to_csv(prediction_filename, index=False)
     logging.info(f'Prediction is saved as {prediction_filename}')
 
