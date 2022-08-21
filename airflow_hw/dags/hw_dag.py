@@ -25,56 +25,20 @@ os.environ['PROJECT_PATH'] = path
 # Добавим путь к коду проекта в $PATH, чтобы импортировать функции
 sys.path.insert(0, path)
 
-def filter_data(df: pd.DataFrame) -> pd.DataFrame:
-    columns_to_drop = [
-        'id',
-        'url',
-        'region',
-        'region_url',
-        'price',
-        'manufacturer',
-        'image_url',
-        'description',
-        'posting_date',
-        'lat',
-        'long'
-    ]
-    return df.drop(columns_to_drop, axis=1)
+path_model = os.environ.get('PROJECT_PATH', '..')
 
 
-def remove_outliers(df: pd.DataFrame) -> pd.DataFrame:
-    def calculate_outliers(data):
-        q25 = data.quantile(0.25)
-        q75 = data.quantile(0.75)
-        iqr = q75 - q25
-        bounds = (q25 - 1.5 * iqr, q75 + 1.5 * iqr)
-        return bounds
-
-    df = df.copy()
-    boundaries = calculate_outliers(df['year'])
-    df.loc[df['year'] < boundaries[0], 'year'] = round(boundaries[0])
-    df.loc[df['year'] > boundaries[1], 'year'] = round(boundaries[1])
-    return df
+files = os.listdir(f'{path_model}/data/models')
+files = [file.split('.')[0].split('_')[-1] for file in files]
+model_number = max(files)
+print(model_number)
 
 
-def create_features(df: pd.DataFrame) -> pd.DataFrame:
-    def short_model(x):
-        if not pd.isna(x):
-            return x.lower().split(' ')[0]
-        else:
-            return x
-
-    df = df.copy()
-    df.loc[:, 'short_model'] = df['model'].apply(short_model)
-    df.loc[:, 'age_category'] = df['year'].apply(lambda x: 'new' if x > 2013 else ('old' if x < 2006 else 'average'))
-    return df
-
-
-with open('../data/models/cars_pipe_202208211029.pkl', 'rb') as file:
+with open(f'{path_model}/data/models/cars_pipe_{model_number}.pkl', 'rb') as file:
     model = dill.load(file)
 
 
-from modules.pipeline import pipeline
+from modules.pipeline import pipeline, filter_data, remove_outliers, create_features
 from modules.predict import predict
 
 
